@@ -14,9 +14,9 @@ def agent_run(q, openai_api_key, mapi_api_key):
     os.environ["MAPI_API_KEY"]=mapi_api_key
     agent_chain = agent.Agent(openai_api_key, mapi_api_key)
     try: 
-        out = agent_chain.run(input=q)
-    except:
-        out = "Something went wrong, please try again"
+        out = agent_chain.run(q)
+    except Exception as err:
+        out = f"Something went wrong, please try again.\nError: {err}"
     return out
 
 with gr.Blocks(css=css_style) as demo:

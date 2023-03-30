@@ -66,4 +66,7 @@ class Agent:
                 agents.load_tools(["llm-math", "python_repl"], llm=llm) +
                 common_tools
               )
-      agent_chain = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True, memory=memory)
+      self.agent_chain = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True, memory=memory)
+
+    def run(self, query):
+       return self.agent_chain.run(input=query)
