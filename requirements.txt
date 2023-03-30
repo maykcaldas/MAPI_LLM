@@ -7,3 +7,4 @@ requests
 gpt_index
 gradio
 rdkit
+transformers
