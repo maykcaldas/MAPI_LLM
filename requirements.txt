@@ -6,3 +6,4 @@ mp_api
 requests
 gpt_index
 gradio
+rdkit
