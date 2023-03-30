@@ -3,6 +3,6 @@ pandas
 openai
 langchain
 mp_api
-request
+requests
 gpt_index
 gradio
