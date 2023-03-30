@@ -1,5 +1,6 @@
 from mapi_tools import MAPI_class_tools, MAPI_reg_tools
 from utils import common_tools
+from reaction_prediction import SynthesisReactions
 from langchain import OpenAI
 from gpt_index import GPTListIndex, GPTIndexMemory
 from langchain import agents
@@ -44,6 +45,8 @@ ionic_energy = MAPI_reg_tools(
 total_energy = MAPI_reg_tools(
     "e_total","total energy"
     )
+reaction = SynthesisReactions()
+
 
 class Agent:
     def __init__(self, openai_api_key, mapi_api_key): 
@@ -63,6 +66,7 @@ class Agent:
                 electronic_energy.get_tools() +
                 ionic_energy.get_tools() +
                 total_energy.get_tools() +
+                reaction.get_tools() +
                 agents.load_tools(["llm-math", "python_repl"], llm=llm) +
                 common_tools
               )

@@ -2,6 +2,7 @@ from langchain.agents import Tool, tool
 import requests
 from langchain import OpenAI
 from langchain import LLMMathChain, SerpAPIWrapper
+import os
 from rdkit import Chem
 
 @tool
