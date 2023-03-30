@@ -9,9 +9,10 @@ css_style = """
 }
 """
 
-def agent_run(q, openai_api_key, mapi_api_key):
+def agent_run(q, openai_api_key, mapi_api_key, serp_api_key):
     os.environ["OPENAI_API_KEY"]=openai_api_key
     os.environ["MAPI_API_KEY"]=mapi_api_key
+    os.environ["SERPAPI_API_KEY"]=serp_api_key
     agent_chain = agent.Agent(openai_api_key, mapi_api_key)
     try: 
         out = agent_chain.run(q)
@@ -33,22 +34,39 @@ with gr.Blocks(css=css_style) as demo:
     ### Some keys are needed in order to use it:
     1. An openAI API key ( [Check it here](https://platform.openai.com/account/api-keys) )
     2. A material project's API key ( [Check it here](https://materialsproject.org/api#api-key) )
+    3. A SERP API key ( [Check it here](https://serpapi.com/account-api) )
+        - Only used if the chain decides to run a web search to answer the question.
     ''')
     with gr.Accordion("List of properties we developed tools for", open=False):
         gr.Markdown(f"""
-        Classification tasks: Stability, magnetism, gap direct and metal. 
-        Regression tasks: band_gap, volume, density, atomic_density, formation energy per atom, energy per atom, electronic energy, ionic energy and total energy.
-        Reaction procedure for synthesis proposal.
+        - Classification tasks: "Is the material AnByCz stable?"
+            - Stable, 
+            - Magnetic, 
+            - Gap direct, and 
+            - Metal.
+        - Regression tasks: "What is the band gap of the material AnByCz?"
+            - Band gap, 
+            - Volume, 
+            - Density, 
+            - Atomic density, 
+            - Formation energy per atom, 
+            - Energy per atom, 
+            - Electronic energy, 
+            - Ionic energy, and 
+            - Total energy.
+        - Reaction procedure for synthesis proposal: "Give me a reaction procedure to synthesize the material AnByCz"(under development)
         """)
     openai_api_key = gr.Textbox(
         label="OpenAI API Key", placeholder="sk-...", type="password")
     mapi_api_key = gr.Textbox(
         label="Material Project API Key", placeholder="...", type="password")
+    serp_api_key = gr.Textbox(
+        label="Material Project API Key", placeholder="...", type="password")
     with gr.Tab("MAPI Query"):
         text_input = gr.Textbox(label="", placeholder="Enter question here...")
-        text_output = gr.Textbox()
-        text_button = gr.Button("Query!")
+        text_output = gr.Textbox(placeholder="Your answer will appear here...")
+        text_button = gr.Button("Ask!")
 
-    text_button.click(agent_run, inputs=[text_input, openai_api_key, mapi_api_key], outputs=text_output)
+    text_button.click(agent_run, inputs=[text_input, openai_api_key, mapi_api_key, serp_api_key], outputs=text_output)
 
 demo.launch()
