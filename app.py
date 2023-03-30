@@ -36,8 +36,9 @@ with gr.Blocks(css=css_style) as demo:
     ''')
     with gr.Accordion("List of properties we developed tools for", open=False):
         gr.Markdown(f"""
-        Classification tasks: Stability, magnetism, gap_direct, metal, 
-        regression tasks: band_gap, volume, density, atomic_density, formation energy per atom, energy per atom, electronic energy, ionic energy, total energy
+        Classification tasks: Stability, magnetism, gap direct and metal. 
+        Regression tasks: band_gap, volume, density, atomic_density, formation energy per atom, energy per atom, electronic energy, ionic energy and total energy.
+        Reaction procedure for synthesis proposal.
         """)
     openai_api_key = gr.Textbox(
         label="OpenAI API Key", placeholder="sk-...", type="password")
