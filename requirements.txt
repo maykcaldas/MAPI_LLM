@@ -9,3 +9,5 @@ gradio
 rdkit
 transformers
 faiss-cpu
+pymatgen
+reaction-network
