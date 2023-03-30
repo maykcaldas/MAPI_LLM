@@ -1,8 +1,8 @@
 ---
 title: MAPI LLM
-emoji: 💩
-colorFrom: purple
-colorTo: pink
+emoji: 👀
+colorFrom: gray
+colorTo: purple
 sdk: gradio
 sdk_version: 3.23.0
 app_file: app.py
