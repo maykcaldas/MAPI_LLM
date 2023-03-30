@@ -28,7 +28,7 @@ with gr.Blocks(css=css_style) as demo:
     ## What is this?
     - This is a demo of an app that can answer questions about material science using the [LangChain🦜️🔗](https://github.com/hwchase17/langchain/) and the [Materials Project API](https://materialsproject.org/).
     - Its behavior is based on Large Language Models (LLM), and it aims to be a tool to help scientists with quick predictions of numerous properties of materials.
-    It is a work in progress, so please be patient with it.
+    It is a work in progress, so please be patient with it. We are working on a systematic validation.
 
 
     ### Some keys are needed to use it:
