@@ -17,7 +17,7 @@ def agent_run(q, openai_api_key, mapi_api_key, serp_api_key):
     try: 
         out = agent_chain.run(q)
     except Exception as err:
-        out = f"Something went wrong, please try again.\nError: {err}"
+        out = f"Something went wrong. Please try again.\nError: {err}"
     return out
 
 with gr.Blocks(css=css_style) as demo:
@@ -26,16 +26,16 @@ with gr.Blocks(css=css_style) as demo:
     - Developed by: Mayk Caldas ([@maykcaldas](https://github.com/maykcaldas)) and Sam Cox ([@SamCox822](https://github.com/SamCox822))
 
     ## What is this?
-    - This is a demo of a LLM agent that can answer questions about materials science using the [LangChain🦜️🔗](https://github.com/hwchase17/langchain/) and the [Materials Project API](https://materialsproject.org/).
-    - Its behave is based on Large Language Models (LLM) and aim to be a tool to help scientists with quick predictions of a nunerous of properties of materials.
+    - This is a demo of an app that can answer questions about material science using the [LangChain🦜️🔗](https://github.com/hwchase17/langchain/) and the [Materials Project API](https://materialsproject.org/).
+    - Its behavior is based on Large Language Models (LLM), and it aims to be a tool to help scientists with quick predictions of numerous properties of materials.
     It is a work in progress, so please be patient with it.
 
 
-    ### Some keys are needed in order to use it:
+    ### Some keys are needed to use it:
     1. An openAI API key ( [Check it here](https://platform.openai.com/account/api-keys) )
-    2. A material project's API key ( [Check it here](https://materialsproject.org/api#api-key) )
+    2. A Material Project's API key ( [Check it here](https://materialsproject.org/api#api-key) )
     3. A SERP API key ( [Check it here](https://serpapi.com/account-api) )
-        - Only used if the chain decides to run a web search to answer the question.
+        - Only used if the chain runs a web search to answer the question.
     ''')
     with gr.Accordion("List of properties we developed tools for", open=False):
         gr.Markdown(f"""
@@ -61,7 +61,7 @@ with gr.Blocks(css=css_style) as demo:
     mapi_api_key = gr.Textbox(
         label="Material Project API Key", placeholder="...", type="password")
     serp_api_key = gr.Textbox(
-        label="Material Project API Key", placeholder="...", type="password")
+        label="Serp API Key", placeholder="...", type="password")
     with gr.Tab("MAPI Query"):
         text_input = gr.Textbox(label="", placeholder="Enter question here...")
         text_output = gr.Textbox(placeholder="Your answer will appear here...")
