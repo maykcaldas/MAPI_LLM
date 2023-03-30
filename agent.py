@@ -45,24 +45,25 @@ total_energy = MAPI_reg_tools(
     "e_total","total energy"
     )
 
-
-memory = GPTIndexMemory(index=GPTListIndex([]), memory_key="chat_history", query_kwargs={"response_mode": "compact"})
-llm=OpenAI(temperature=0.7)
-tools = (
-          stability.get_tools() +
-          magnetism.get_tools() + 
-          gap_direct.get_tools() + 
-          metal.get_tools() + 
-          band_gap.get_tools() +
-          volume.get_tools() +
-          density.get_tools() +
-          atomic_density.get_tools() +
-          formation_energy_per_atom.get_tools() +
-          energy_per_atom.get_tools() +
-          electronic_energy.get_tools() +
-          ionic_energy.get_tools() +
-          total_energy.get_tools() +
-          agents.load_tools(["llm-math", "python_repl"], llm=llm) +
-          common_tools
-         )
-agent_chain = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True, memory=memory)
+class Agent:
+    def __init__(self, openai_api_key, mapi_api_key): 
+      memory = GPTIndexMemory(index=GPTListIndex([]), memory_key="chat_history", query_kwargs={"response_mode": "compact"})
+      llm=OpenAI(temperature=0.7)
+      tools = (
+                stability.get_tools() +
+                magnetism.get_tools() + 
+                gap_direct.get_tools() + 
+                metal.get_tools() + 
+                band_gap.get_tools() +
+                volume.get_tools() +
+                density.get_tools() +
+                atomic_density.get_tools() +
+                formation_energy_per_atom.get_tools() +
+                energy_per_atom.get_tools() +
+                electronic_energy.get_tools() +
+                ionic_energy.get_tools() +
+                total_energy.get_tools() +
+                agents.load_tools(["llm-math", "python_repl"], llm=llm) +
+                common_tools
+              )
+      agent_chain = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True, memory=memory)

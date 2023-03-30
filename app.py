@@ -12,8 +12,9 @@ css_style = """
 def agent_run(q, openai_api_key, mapi_api_key):
     os.environ["OPENAI_API_KEY"]=openai_api_key
     os.environ["MAPI_API_KEY"]=mapi_api_key
+    agent_chain = agent.Agent(openai_api_key, mapi_api_key)
     try: 
-        out = agent.agent_chain.run(input=q)
+        out = agent_chain.run(input=q)
     except:
         out = "Something went wrong, please try again"
     return out
