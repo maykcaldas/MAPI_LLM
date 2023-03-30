@@ -1,0 +1,8 @@
+numpy
+pandas
+openai
+langchain
+mp_api
+request
+gpt_index
+gradio
