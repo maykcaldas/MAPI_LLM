@@ -121,7 +121,7 @@ class MAPI_class_tools(MAPITools):
     return f"Could not find any material while searching {formula}"
 
   def create_context_prompt(self, formula):
-    '''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict if the formula is a stable material '''
+    '''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict if the formula is a {self.prop_name} material '''
     elements = self.get_material_atoms(formula)
     similars = self.search_similars_by_atom(elements)
     similars = [
@@ -165,7 +165,7 @@ class MAPI_reg_tools(MAPITools):
     self.prop_name = prop_name
 
   def check_prop_by_formula(self, formula):
-    ''' This functions searches in the material project's API for the formula and returns if it is stable or not'''
+    ''' This functions searches in the material project's API for the formula and returns the {self.prop_name}'''
     with MPRester(os.getenv("MAPI_API_KEY")) as mpr:
       docs = mpr.summary.search(formula=formula, fields=["formula_pretty", self.prop])
     if docs:
