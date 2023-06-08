@@ -14,3 +14,5 @@ A brief video presentation on how to use this app can be found [here](https://tw
 >It is a work in progress, so please be patient with it. 
 >We are working on a systematic validation.
 
+
+Please, notice that MAPI_LLM is under the MIT license, but The Materials Project has its own [terms of use](https://materialsproject.org/about/terms) and any usage of their data is subject to the appropriate [terms of use](https://materialsproject.org/about/terms).
