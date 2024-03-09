@@ -2,12 +2,14 @@ numpy
 pandas
 openai
 langchain
+langchain_openai
+langchainhub
 mp_api
 requests
-gpt_index
-gradio
 rdkit
 transformers
 faiss-cpu
 pymatgen
 reaction-network
+python-dotenv
+numexpr
