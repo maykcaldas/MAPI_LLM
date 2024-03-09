@@ -2,17 +2,13 @@ from mp_api.client import MPRester
 from emmet.core.summary import HasProps
 import openai
 import langchain
-from langchain import OpenAI
-from langchain import agents
+from langchain_openai import ChatOpenAI
 from langchain.agents import initialize_agent
 from langchain.agents import Tool, tool
-from langchain import LLMMathChain, SerpAPIWrapper
-from gpt_index import GPTListIndex, GPTIndexMemory
-from langchain import SerpAPIWrapper
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain.prompts.prompt import PromptTemplate
-from langchain.vectorstores import FAISS, Chroma
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
 from langchain.prompts.example_selector import (MaxMarginalRelevanceExampleSelector, 
                                                 SemanticSimilarityExampleSelector)
 import requests
@@ -52,7 +48,7 @@ class MAPITools:
 
   def LLM_predict(self, prompt):
     ''' This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion'''
-    llm = OpenAI(
+    llm = ChatOpenAI(
           model_name=self.model,
           temperature=0.7,
           n=1,
@@ -213,3 +209,49 @@ class MAPI_reg_tools(MAPITools):
               input_variables=["formula"])
     
     return prompt.format(formula=formula)
+
+stability = MAPI_class_tools(
+    "is_stable","stable","Stable","Unstable"
+    )
+magnetism = MAPI_class_tools(
+    "is_magnetic","magnetic","Magnetic","Not magnetic"
+    )
+metal = MAPI_class_tools(
+    "is_metal","metallic","Metal","Not metal"
+    )
+gap_direct = MAPI_class_tools(
+    "is_gap_direct","gap direct","Gap direct","Gap indirect"
+    )
+band_gap = MAPI_reg_tools(
+    "band_gap","band gap"
+    )
+energy_per_atom = MAPI_reg_tools(
+    "energy_per_atom","energy per atom gap"
+    )
+formation_energy_per_atom = MAPI_reg_tools(
+    "formation_energy_per_atom","formation energy per atom gap"
+    )
+volume = MAPI_reg_tools(
+    "volume","volume"
+    )
+density = MAPI_reg_tools(
+    "density","density"
+    )
+atomic_density = MAPI_reg_tools(
+    "density_atomic","atomic density"
+    )
+electronic_energy = MAPI_reg_tools(
+    "e_electronic","electronic energy"
+    )
+ionic_energy = MAPI_reg_tools(
+    "e_ion","cationic energy"
+    )
+total_energy = MAPI_reg_tools(
+    "e_total","total energy"
+    )
+
+mapi_tools = []
+# for prop in [stability, magnetism, metal, gap_direct, band_gap, 
+            #  energy_per_atom, formation_energy_per_atom, volume, density, atomic_density, electronic_energy, ionic_energy, total_energy]:
+for prop in [band_gap]:
+  mapi_tools += prop.get_tools()

@@ -1,7 +1,8 @@
 from langchain.agents import Tool, tool
 import requests
-from langchain import OpenAI
-from langchain import LLMMathChain, SerpAPIWrapper
+from langchain_community.llms import OpenAI
+from langchain.chains import LLMMathChain
+from langchain_community.utilities import SerpAPIWrapper
 import os
 from rdkit import Chem
 
