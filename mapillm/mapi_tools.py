@@ -12,6 +12,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.prompts.example_selector import (MaxMarginalRelevanceExampleSelector, 
                                                 SemanticSimilarityExampleSelector)
 import requests
+import warnings
 from rdkit import Chem
 import pandas as pd
 import os
@@ -22,7 +23,7 @@ class MAPITools:
     self.k=10
   
   def get_material_atoms(self, formula):
-    '''Receives a material formula and returns the atoms symbols present in it separated by comma.'''
+    f'''Receives a material formula and returns the atoms symbols present in it separated by comma.'''
     import re
     pattern = re.compile(r"([A-Z][a-z]*)(\d*)")
     matches = pattern.findall(formula)
@@ -37,17 +38,17 @@ class MAPITools:
     raise NotImplementedError('Should be implemented in children classes')
 
   def search_similars_by_atom(self, atoms):
-    '''This function receives a string with the atoms separated by comma as input and returns a list of similar materials'''
+    f'''This function receives a string with the atoms separated by comma as input and returns a list of similar materials.'''
     atoms = atoms.replace(" ", "")
     with MPRester(os.getenv("MAPI_API_KEY")) as mpr:
-      docs = mpr.summary.search(elements=atoms.split(','), fields=["formula_pretty", self.prop])
+      docs = mpr.materials.summary.search(elements=atoms.split(','), fields=["formula_pretty", self.prop])
     return docs
 
   def create_context_prompt(self, formula):
     raise NotImplementedError('Should be implemented in children classes')
 
   def LLM_predict(self, prompt):
-    ''' This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion'''
+    f''' This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion.'''
     llm = ChatOpenAI(
           model_name=self.model,
           temperature=0.7,
@@ -108,21 +109,23 @@ class MAPI_class_tools(MAPITools):
     self.n_label = n_label
 
   def check_prop_by_formula(self, formula):
-    f''' This functions searches in the material project's API for the formula and returns if it is {self.prop_name} or not'''
+    f''' This functions searches in the material project's API for the formula and returns if it is {self.prop_name} or not.'''
     with MPRester(os.getenv("MAPI_API_KEY")) as mpr:
-      docs = mpr.summary.search(formula=formula, fields=["formula_pretty", self.prop])
+      docs = mpr.materials.summary.search(formula=formula, fields=["formula_pretty", self.prop])
+    if len(docs) > 1:
+      warnings.warn(f"More than one material found for {formula}. Will use the first one. Please, check the results.")
     if docs:
       if docs[0].formula_pretty == formula:
-        return self.p_label if docs[0].dict()[self.prop] else self.n_label
+        return self.p_label if docs[0].model_dump()[self.prop] else self.n_label
     return f"Could not find any material while searching {formula}"
 
   def create_context_prompt(self, formula):
-    '''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict if the formula is a {self.prop_name} material '''
+    f'''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict if the formula is a {self.prop_name} material.'''
     elements = self.get_material_atoms(formula)
     similars = self.search_similars_by_atom(elements)
     similars = [
         {'formula': ex.formula_pretty,
-        'prop': self.p_label if ex.dict()[self.prop] else self.n_label
+        'prop': self.p_label if ex.model_dump()[self.prop] else self.n_label
         } for ex in similars
     ]
     examples = pd.DataFrame(similars).drop_duplicates().to_dict(orient="records")
@@ -161,23 +164,25 @@ class MAPI_reg_tools(MAPITools):
     self.prop_name = prop_name
 
   def check_prop_by_formula(self, formula):
-    ''' This functions searches in the material project's API for the formula and returns the {self.prop_name}'''
+    f''' This functions searches in the material project's API for the formula and returns the {self.prop_name}.'''
     with MPRester(os.getenv("MAPI_API_KEY")) as mpr:
-      docs = mpr.summary.search(formula=formula, fields=["formula_pretty", self.prop])
+      docs = mpr.materials.summary.search(formula=formula, fields=["formula_pretty", self.prop])
+    if len(docs) > 1:
+      warnings.warn(f"More than one material found for {formula}. Will use the first one. Please, check the results.")
     if docs:
       if docs[0].formula_pretty == formula:
-        return docs[0].dict()[self.prop]
-      elif docs[0].dict()[self.prop] is None:
+        return docs[0].model_dump()[self.prop]
+      elif docs[0].model_dump()[self.prop] is None:
         return f"There is no record of {self.prop_name} for {formula}"
     return f"Could not find any material while searching {formula}"
 
   def create_context_prompt(self, formula):
-    f'''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict the {self.prop_name} of the material '''
+    f'''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict the {self.prop_name} of the material.'''
     elements = self.get_material_atoms(formula)
     similars = self.search_similars_by_atom(elements)
     similars = [
         {'formula': ex.formula_pretty,
-        'prop': f"{ex.dict()[self.prop]:2f}" if ex.dict()[self.prop] is not None else None
+        'prop': f"{ex.model_dump()[self.prop]:2f}" if ex.model_dump()[self.prop] is not None else None
         } for ex in similars
     ]
     examples = pd.DataFrame(similars).drop_duplicates().dropna().to_dict(orient="records")
