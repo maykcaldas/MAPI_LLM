@@ -12,6 +12,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.prompts.example_selector import (MaxMarginalRelevanceExampleSelector, 
                                                 SemanticSimilarityExampleSelector)
 import requests
+import warnings
 from rdkit import Chem
 import pandas as pd
 import os
@@ -110,14 +111,16 @@ class MAPI_class_tools(MAPITools):
   def check_prop_by_formula(self, formula):
     f''' This functions searches in the material project's API for the formula and returns if it is {self.prop_name} or not'''
     with MPRester(os.getenv("MAPI_API_KEY")) as mpr:
-      docs = mpr.summary.search(formula=formula, fields=["formula_pretty", self.prop])
+      docs = mpr.materials.summary.search(formula=formula, fields=["formula_pretty", self.prop])
+    if len(docs) > 1:
+      warnings.warn(f"More than one material found for {formula}. Will use the first one. Please, check the results.")
     if docs:
       if docs[0].formula_pretty == formula:
         return self.p_label if docs[0].dict()[self.prop] else self.n_label
     return f"Could not find any material while searching {formula}"
 
   def create_context_prompt(self, formula):
-    '''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict if the formula is a {self.prop_name} material '''
+    f'''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict if the formula is a {self.prop_name} material '''
     elements = self.get_material_atoms(formula)
     similars = self.search_similars_by_atom(elements)
     similars = [
@@ -164,6 +167,8 @@ class MAPI_reg_tools(MAPITools):
     ''' This functions searches in the material project's API for the formula and returns the {self.prop_name}'''
     with MPRester(os.getenv("MAPI_API_KEY")) as mpr:
       docs = mpr.summary.search(formula=formula, fields=["formula_pretty", self.prop])
+    if len(docs) > 1:
+      warnings.warn(f"More than one material found for {formula}. Will use the first one. Please, check the results.")
     if docs:
       if docs[0].formula_pretty == formula:
         return docs[0].dict()[self.prop]
