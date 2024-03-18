@@ -23,7 +23,7 @@ class MAPITools:
     self.k=10
   
   def get_material_atoms(self, formula):
-    '''Receives a material formula and returns the atoms symbols present in it separated by comma.'''
+    f'''Receives a material formula and returns the atoms symbols present in it separated by comma.'''
     import re
     pattern = re.compile(r"([A-Z][a-z]*)(\d*)")
     matches = pattern.findall(formula)
@@ -38,7 +38,7 @@ class MAPITools:
     raise NotImplementedError('Should be implemented in children classes')
 
   def search_similars_by_atom(self, atoms):
-    '''This function receives a string with the atoms separated by comma as input and returns a list of similar materials'''
+    f'''This function receives a string with the atoms separated by comma as input and returns a list of similar materials.'''
     atoms = atoms.replace(" ", "")
     with MPRester(os.getenv("MAPI_API_KEY")) as mpr:
       docs = mpr.materials.summary.search(elements=atoms.split(','), fields=["formula_pretty", self.prop])
@@ -48,7 +48,7 @@ class MAPITools:
     raise NotImplementedError('Should be implemented in children classes')
 
   def LLM_predict(self, prompt):
-    ''' This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion'''
+    f''' This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion.'''
     llm = ChatOpenAI(
           model_name=self.model,
           temperature=0.7,
@@ -109,7 +109,7 @@ class MAPI_class_tools(MAPITools):
     self.n_label = n_label
 
   def check_prop_by_formula(self, formula):
-    f''' This functions searches in the material project's API for the formula and returns if it is {self.prop_name} or not'''
+    f''' This functions searches in the material project's API for the formula and returns if it is {self.prop_name} or not.'''
     with MPRester(os.getenv("MAPI_API_KEY")) as mpr:
       docs = mpr.materials.summary.search(formula=formula, fields=["formula_pretty", self.prop])
     if len(docs) > 1:
@@ -120,7 +120,7 @@ class MAPI_class_tools(MAPITools):
     return f"Could not find any material while searching {formula}"
 
   def create_context_prompt(self, formula):
-    f'''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict if the formula is a {self.prop_name} material '''
+    f'''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict if the formula is a {self.prop_name} material.'''
     elements = self.get_material_atoms(formula)
     similars = self.search_similars_by_atom(elements)
     similars = [
@@ -164,7 +164,7 @@ class MAPI_reg_tools(MAPITools):
     self.prop_name = prop_name
 
   def check_prop_by_formula(self, formula):
-    ''' This functions searches in the material project's API for the formula and returns the {self.prop_name}'''
+    f''' This functions searches in the material project's API for the formula and returns the {self.prop_name}.'''
     with MPRester(os.getenv("MAPI_API_KEY")) as mpr:
       docs = mpr.materials.summary.search(formula=formula, fields=["formula_pretty", self.prop])
     if len(docs) > 1:
@@ -177,7 +177,7 @@ class MAPI_reg_tools(MAPITools):
     return f"Could not find any material while searching {formula}"
 
   def create_context_prompt(self, formula):
-    f'''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict the {self.prop_name} of the material '''
+    f'''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict the {self.prop_name} of the material.'''
     elements = self.get_material_atoms(formula)
     similars = self.search_similars_by_atom(elements)
     similars = [
