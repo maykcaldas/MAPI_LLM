@@ -19,7 +19,7 @@ import os
 
 class MAPITools:
   def __init__(self):
-    self.model = 'text-ada-001' #maybe change to gpt-4 when ready
+    self.model = 'gpt-3.5-turbo' #maybe change to gpt-4 when ready
     self.k=10
   
   def get_material_atoms(self, formula):
@@ -51,14 +51,12 @@ class MAPITools:
     f''' This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion.'''
     llm = ChatOpenAI(
           model_name=self.model,
-          temperature=0.7,
-          n=1,
-          best_of=5,
-          top_p=1.0,
-          stop=["\n\n", "###", "#", "##"],
-          # model_kwargs=kwargs,
+          temperature=0.1,
+          n=5,
+          # best_of=5,
+          # stop=["\n\n", "###", "#", "##"],
       )
-    return llm.generate([prompt]).generations[0][0].text
+    return llm.invoke([prompt]).generations[0][0].text
 
   def get_tools(self):
     return [
@@ -92,7 +90,7 @@ class MAPITools:
               f"This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict the {self.prop_name} of a material." 
               )
         ),
-        Tool(name = "LLM predictiom",
+        Tool(name = "LLM prediction",
             func = self.LLM_predict,
             description = (
                 "This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion"
@@ -197,7 +195,7 @@ class MAPI_reg_tools(MAPITools):
     prefix=(
       f'You are a bot who can predict the {self.prop_name} of a material .\n'
       f'Given this list of known materials and the measurement of their {self.prop_name}, \n'
-      f'you need to answer the what is the {self.prop_name} of the material:'
+      f'you need to predict what is the {self.prop_name} of the material:'
        'The answer should be numeric and finish with ###'
       )
     prompt_template=PromptTemplate(
@@ -215,6 +213,8 @@ class MAPI_reg_tools(MAPITools):
     
     return prompt.format(formula=formula)
 
+
+# Now we create the tools
 stability = MAPI_class_tools(
     "is_stable","stable","Stable","Unstable"
     )

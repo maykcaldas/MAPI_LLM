@@ -93,6 +93,6 @@ common_tools = [
     # formula2IUPAC,
     # name2formula,
     canonicalizeSMILES,
-    web_search,
+    # web_search,
     LLM_predict
 ]
