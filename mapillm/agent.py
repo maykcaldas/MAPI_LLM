@@ -1,5 +1,5 @@
-from mapi_tools import mapi_tools
-from utils import common_tools
+from .mapi_tools import mapi_tools
+from .utils import common_tools
 # from reaction_prediction import SynthesisReactions
 from langchain import hub, agents
 from langchain.agents import AgentExecutor, create_react_agent
@@ -7,6 +7,8 @@ from langchain_openai import ChatOpenAI
 import os
 
 # reaction = SynthesisReactions()
+
+print("apsidjaiposdhu")
 
 class Agent:
     def __init__(self, openai_api_key, mapi_api_key): 
@@ -37,4 +39,4 @@ if __name__ == "__main__":
     load_dotenv(override=True)
 
     a = Agent(openai_api_key=os.getenv("OPENAI_API_KEY"), mapi_api_key=os.getenv("MAPI_API_KEY"))
-    a.run("What's the band gap of Fe3O4?")
+    a.run("What's the band gap of Fe2O4?")

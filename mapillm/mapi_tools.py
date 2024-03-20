@@ -19,7 +19,7 @@ import os
 
 class MAPITools:
   def __init__(self):
-    self.model = 'gpt-3.5-turbo' #maybe change to gpt-4 when ready
+    self.model = 'gpt-4-turbo' #maybe change to gpt-4 when ready
     self.k=10
   
   def get_material_atoms(self, formula):
@@ -256,7 +256,7 @@ total_energy = MAPI_reg_tools(
     )
 
 mapi_tools = []
-# for prop in [stability, magnetism, metal, gap_direct, band_gap, 
-            #  energy_per_atom, formation_energy_per_atom, volume, density, atomic_density, electronic_energy, ionic_energy, total_energy]:
-for prop in [band_gap]:
+for prop in [stability, magnetism, metal, gap_direct, band_gap, 
+             energy_per_atom, formation_energy_per_atom, volume, density, atomic_density, electronic_energy, ionic_energy, total_energy]:
+# for prop in [band_gap]:
   mapi_tools += prop.get_tools()
