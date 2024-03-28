@@ -77,7 +77,7 @@ def web_search(keywords, search_engine="google"):
 def LLM_predict(prompt):
   ''' This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion'''
   llm = OpenAI(
-        model_name='text-ada-001',  #TODO: Maybe change to gpt-4 when ready
+        model_name="gpt-3.5-turbo",
         temperature=0.7,
         n=1,
         best_of=5,

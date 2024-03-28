@@ -25,7 +25,6 @@ setup(
         "langchain_openai",
         "langchainhub",
         "mp_api",
-        "request",
         "rdkit",
         "transformers",
         "pymatgen",

@@ -17,10 +17,15 @@ from rdkit import Chem
 import pandas as pd
 import os
 
+from dotenv import load_dotenv
+load_dotenv()
+
 class MAPITools:
-  def __init__(self):
-    self.model = 'gpt-4-turbo' #maybe change to gpt-4 when ready
-    self.k=10
+  def __init__(self, prop, prop_name, model='gpt-3.5-turbo', k=10):
+    self.model = model #maybe change to gpt-4 when ready
+    self.k=k
+    self.prop = prop
+    self.prop_name = prop_name
   
   def get_material_atoms(self, formula):
     f'''Receives a material formula and returns the atoms symbols present in it separated by comma.'''
@@ -37,18 +42,19 @@ class MAPITools:
   def check_prop_by_formula(self, formula):
     raise NotImplementedError('Should be implemented in children classes')
 
-  def search_similars_by_atom(self, atoms):
+  def search_similars_by_atoms(self, atoms):
     f'''This function receives a string with the atoms separated by comma as input and returns a list of similar materials.'''
     atoms = atoms.replace(" ", "")
     with MPRester(os.getenv("MAPI_API_KEY")) as mpr:
-      docs = mpr.materials.summary.search(elements=atoms.split(','), fields=["formula_pretty", self.prop])
+      docs = mpr.materials.summary.search(elements=atoms.split(','), fields=["formula_pretty", self.prop, "symmetry"])
+
     return docs
 
   def create_context_prompt(self, formula):
     raise NotImplementedError('Should be implemented in children classes')
 
-  def LLM_predict(self, prompt):
-    f''' This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion.'''
+  def LLM_predict(self, prompt):    
+    f'''This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion.'''
     llm = ChatOpenAI(
           model_name=self.model,
           temperature=0.1,
@@ -56,17 +62,10 @@ class MAPITools:
           # best_of=5,
           # stop=["\n\n", "###", "#", "##"],
       )
-    return llm.invoke([prompt]).generations[0][0].text
+    return llm.invoke([prompt]).content
 
   def get_tools(self):
     return [
-        Tool(
-            name = "Get atoms in material",
-            func = self.get_material_atoms,
-            description = (
-              "Receives a material formula and returns the atoms symbols present in it separated by comma."
-              )
-        ),
         Tool(
             name = f"Checks if material is {self.prop_name} by formula",
             func = self.check_prop_by_formula,
@@ -74,15 +73,8 @@ class MAPITools:
                 f"This functions searches in the material project's API for the formula and returns if it is {self.prop_name} or not."
               )
         ),
-        # Tool(
-        #     name = "Search similar materials by atom",
-        #     func = self.search_similars_by_atom,
-        #     description = (
-        #       "This function receives a string with the atoms separated by comma as input and returns a list of similar materials."
-        #       )
-        # ),
         Tool(
-            name = f"Create {self.prop_name} context to LLM search",
+            name = f"Create {self.prop_name} context to LLM completion",
             func = self.create_context_prompt,
             description = (
               f"This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict if the material is {self.prop_name}." 
@@ -90,7 +82,7 @@ class MAPITools:
               f"This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict the {self.prop_name} of a material." 
               )
         ),
-        Tool(name = "LLM prediction",
+        Tool(name = f"LLM prediction while computing {self.prop_name}",
             func = self.LLM_predict,
             description = (
                 "This function receives a prompt generate with context by the create_context_prompt tool and request a completion to a language model. Then returns the completion"
@@ -99,10 +91,8 @@ class MAPITools:
     ]
 
 class MAPI_class_tools(MAPITools):
-  def __init__(self, prop, prop_name, p_label, n_label):
-    super().__init__()
-    self.prop = prop
-    self.prop_name = prop_name
+  def __init__(self, prop, prop_name, p_label, n_label, model='gpt-3.5-turbo', k=10):
+    super().__init__(prop=prop, prop_name=prop_name, model=model, k=k)
     self.p_label = p_label
     self.n_label = n_label
 
@@ -114,18 +104,21 @@ class MAPI_class_tools(MAPITools):
       warnings.warn(f"More than one material found for {formula}. Will use the first one. Please, check the results.")
     if docs:
       if docs[0].formula_pretty == formula:
-        return self.p_label if docs[0].model_dump()[self.prop] else self.n_label
+        return f"{formula} is {self.p_label if docs[0].model_dump()[self.prop] else self.n_label}"
     return f"Could not find any material while searching {formula}"
 
   def create_context_prompt(self, formula):
     f'''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict if the formula is a {self.prop_name} material.'''
     elements = self.get_material_atoms(formula)
-    similars = self.search_similars_by_atom(elements)
+    docs = self.search_similars_by_atoms(elements)
     similars = [
         {'formula': ex.formula_pretty,
-        'prop': self.p_label if ex.model_dump()[self.prop] else self.n_label
-        } for ex in similars
+        'prop': self.p_label if ex.model_dump()[self.prop] else self.n_label,
+        'lattice': ex.model_dump()['symmetry']['crystal_system'].value,
+        'point_group': ex.model_dump()['symmetry']['point_group'],
+        } for ex in docs
     ]
+    
     examples = pd.DataFrame(similars).drop_duplicates().to_dict(orient="records")
     example_selector = MaxMarginalRelevanceExampleSelector.from_examples(
                     examples,
@@ -140,10 +133,10 @@ class MAPI_class_tools(MAPITools):
       f'you need to answer the question if the last material is {self.prop_name}:'
       )
     prompt_template=PromptTemplate(
-                  input_variables=["formula", "prop"],
-                  template=f"Is {{formula}} a {self.prop_name} material?@@@\n{{prop}}###",
+                  input_variables=["formula", "prop", "lattice", "point_group"],
+                  template=f"Is {{lattice}} {{formula}} with space group {{point_group}} a {self.prop_name} material?@@@\n{{prop}}###",
               )
-    suffix = f"Is {{formula}} a {self.prop_name} material?@@@\n"
+    suffix = f"Is {formula} a {self.prop_name} material?@@@\n"
     prompt = FewShotPromptTemplate(
               # examples=examples,
               example_prompt=prompt_template,
@@ -156,10 +149,8 @@ class MAPI_class_tools(MAPITools):
 
 class MAPI_reg_tools(MAPITools):
   # TODO: deal with units
-  def __init__(self, prop, prop_name):
-    super().__init__()
-    self.prop = prop
-    self.prop_name = prop_name
+  def __init__(self, prop, prop_name, model='gpt-3.5-turbo', k=10):
+    super().__init__(prop=prop, prop_name=prop_name, model=model, k=k)
 
   def check_prop_by_formula(self, formula):
     f''' This functions searches in the material project's API for the formula and returns the {self.prop_name}.'''
@@ -169,7 +160,7 @@ class MAPI_reg_tools(MAPITools):
       warnings.warn(f"More than one material found for {formula}. Will use the first one. Please, check the results.")
     if docs:
       if docs[0].formula_pretty == formula:
-        return docs[0].model_dump()[self.prop]
+        return f"{formula} {self.prop_name} is {docs[0].model_dump()[self.prop]}"
       elif docs[0].model_dump()[self.prop] is None:
         return f"There is no record of {self.prop_name} for {formula}"
     return f"Could not find any material while searching {formula}"
@@ -177,12 +168,15 @@ class MAPI_reg_tools(MAPITools):
   def create_context_prompt(self, formula):
     f'''This function received a material formula as input and create a prompt to be inputed in the LLM_predict tool to predict the {self.prop_name} of the material.'''
     elements = self.get_material_atoms(formula)
-    similars = self.search_similars_by_atom(elements)
+    docs = self.search_similars_by_atoms(elements)
     similars = [
         {'formula': ex.formula_pretty,
-        'prop': f"{ex.model_dump()[self.prop]:2f}" if ex.model_dump()[self.prop] is not None else None
-        } for ex in similars
+        'prop': f"{ex.model_dump()[self.prop]:2f}" if ex.model_dump()[self.prop] is not None else None,
+        'lattice': ex.model_dump()['symmetry']['crystal_system'].value,
+        'point_group': ex.model_dump()['symmetry']['point_group'],
+        } for ex in docs
     ]
+
     examples = pd.DataFrame(similars).drop_duplicates().dropna().to_dict(orient="records")
 
     example_selector = MaxMarginalRelevanceExampleSelector.from_examples(
@@ -196,13 +190,13 @@ class MAPI_reg_tools(MAPITools):
       f'You are a bot who can predict the {self.prop_name} of a material .\n'
       f'Given this list of known materials and the measurement of their {self.prop_name}, \n'
       f'you need to predict what is the {self.prop_name} of the material:'
-       'The answer should be numeric and finish with ###'
+      f'The answer should be numeric and finish with ###'
       )
     prompt_template=PromptTemplate(
-                  input_variables=["formula", "prop"],
-                  template=f"What is the {self.prop_name} for {{formula}}?@@@\n{{prop}}###",
+                  input_variables=["formula", "prop", "lattice", "point_group"],
+                  template=f"What is the {self.prop_name} for {{lattice}} {{formula}} with space group {{point_group}}?@@@\n{{prop}}###",
               )
-    suffix = f"What is the {self.prop_name} for {{formula}}?@@@\n"
+    suffix = f"What is the {self.prop_name} for {formula}?@@@\n"
     prompt = FewShotPromptTemplate(
               # examples=examples,
               example_prompt=prompt_template,
@@ -231,10 +225,10 @@ band_gap = MAPI_reg_tools(
     "band_gap","band gap"
     )
 energy_per_atom = MAPI_reg_tools(
-    "energy_per_atom","energy per atom gap"
+    "energy_per_atom","energy per atom"
     )
 formation_energy_per_atom = MAPI_reg_tools(
-    "formation_energy_per_atom","formation energy per atom gap"
+    "formation_energy_per_atom","formation energy per atom"
     )
 volume = MAPI_reg_tools(
     "volume","volume"

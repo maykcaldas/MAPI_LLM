@@ -8,25 +8,33 @@ import os
 
 # reaction = SynthesisReactions()
 
-print("apsidjaiposdhu")
-
 class Agent:
     def __init__(self, openai_api_key, mapi_api_key): 
         self.llm = ChatOpenAI(
             temperature=0.1,
             model="gpt-3.5-turbo",
             streaming=True,
-        )
+            )
         self.tools = (
-                mapi_tools +
+                mapi_tools 
+                # +
                 # reaction.get_tools() +
                 # agents.load_tools(["llm-math", "python_repl"], llm=self.llm) +
-                common_tools
-              )
-        
+                # common_tools
+            )
         self.prompt = hub.pull("hwchase17/react")
-        self.agent = create_react_agent(self.llm, self.tools, self.prompt)
-        self.agent_executor = AgentExecutor(agent=self.agent, tools=self.tools, verbose=True)
+        self.agent = create_react_agent(
+            self.llm,
+            self.tools, 
+            self.prompt
+            )
+        
+        self.agent_executor = AgentExecutor(
+                agent=self.agent, 
+                tools=self.tools, 
+                verbose=True, 
+                # handle_parsing_errors=True
+            )
 
     def run(self, query: str):
         return self.agent_executor.invoke({
