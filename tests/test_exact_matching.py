@@ -60,3 +60,4 @@ def test_get_weighted_average_of_neighbors(exact_match):
 
     with pytest.raises(ValueError):
         avg_prop = exact_match.get_weighted_average_of_neighbors(arg_dict)
+
