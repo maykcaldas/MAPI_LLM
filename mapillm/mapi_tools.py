@@ -260,35 +260,3 @@ for prop in [stability, magnetism, metal, gap_direct, band_gap,
              energy_per_atom, formation_energy_per_atom, volume, density, atomic_density, electronic_energy, ionic_energy, total_energy]:
 # for prop in [band_gap]:
   mapi_tools += prop.get_tools()
-
-
-class ExactMatchingTool():
-  #move to other class when ready
-  def __init__(self):
-    self.mpr = MPRester(os.getenv("MAPI_API_KEY"))
-
-  def _get_specific_query(self, docs, space_group_num=None, density=None, lattice=None):
-      if space_group_num:
-          docs = [doc for doc in docs if doc.symmetry.number == space_group_num]
-      if density:
-          #instead of exact matching density, get density match to the first decimal
-          docs = [doc for doc in docs if round(doc.density, 1) == round(density, 1)]
-      if lattice:
-          docs = [doc for doc in docs if doc.symmetry.crystal_system.value == lattice]
-      return docs
-  
-  def query_material_property(self, formula, desired_prop, space_group_num=None, density=None, lattice=None, one_only=True):
-      docs = self.mpr.materials.summary.search(formula=formula, fields=["formula_pretty", desired_prop, "symmetry", "density", "lattice"])
-      docs = self._get_specific_query(docs, space_group_num, density, lattice)
-      if not docs:
-          return []
-      if one_only:
-          docs = [docs[0]]
-      return docs
-  
-  def _get_prop(self, docs, prop):
-      props = []
-      for doc in docs:
-          props.append(getattr(doc, prop))
-      return props
-    
