@@ -8,8 +8,6 @@ import os
 
 # reaction = SynthesisReactions()
 
-print("apsidjaiposdhu")
-
 class Agent:
     def __init__(self, openai_api_key, mapi_api_key): 
         self.llm = ChatOpenAI(
