@@ -16,7 +16,7 @@ setup(
     author_email="maykcaldas@gmail.edu",
     url="https://github.com/maykcaldas/MAPI_LLM",
     license="MIT",
-    packages=['mapillm'],
+    packages=find_packages(),
     install_requires=[
         "numpy",
         "pandas",
